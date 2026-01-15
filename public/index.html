@@ -227,7 +227,7 @@
       <div class="card">
         <div class="row">
           <button id="btn">换一张</button>
-          <a id="openLink" href="/r" target="_blank" rel="noreferrer">打开图片链接</a>        
+          <a id="openLink" href="#" target="_blank" rel="noreferrer">打开图片链接</a>
         </div>
 
         <div id="status" class="status">(加载中…)</div>
@@ -255,6 +255,8 @@
       const status = document.getElementById('status');
       const jsonEl = document.getElementById('json');
       const link = document.getElementById('openLink');
+      const urlParams = new URLSearchParams(location.search);
+      const apiEnabled = urlParams.get('api') === '1';
 
       let staticList = null;
 
@@ -284,6 +286,11 @@
       }
 
       async function loadFromApi() {
+        if (!apiEnabled) {
+          const err = new Error('API disabled');
+          err.code = 'API_DISABLED';
+          throw err;
+        }
         const apiPath = resolveStaticPath('/api/random');
         const res = await fetch(`${apiPath}?json=1`, {
           headers: { accept: 'application/json' }
@@ -376,7 +383,7 @@
         load();
       });
 
-      link.href = resolveStaticPath('/r');
+      link.href = '#';
       load();
     </script>
   </body>
