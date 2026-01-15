@@ -1,84 +1,35 @@
-# Image Api for Aliyun ESA / Cloudflare Workers / Pages / EdgeOne Pages
+<h1 align="center">Image Api for Pages</h1>
 
-一个可以部署到函数或者Page的随机图床 API。
-支持 Aliyun ESA、Cloudflare Workers、Cloudflare Pages Functions，以及 EdgeOne Pages（静态托管/构建/环境变量）。
+一个可以部署到函数或者Page的随机图床 API。支持多种部署环境
 
 ## 功能
 
 - `GET /api/random`：直接返回随机图片（图片内容）
-	- `GET /api/random?json=1`：返回随机图片信息（JSON）
-	- `GET /api/random?id=xxx`：返回指定 id 的图片（图片内容）
+
+  - `GET /api/random?json=1`：返回随机图片信息（JSON）
+  - `GET /api/random?id=xxx`：返回指定 id 的图片（图片内容）
 - `GET /r`：302 重定向到随机图片（跳转到 `/images/*.webp` 路径）
 - `GET /health`：健康检查（返回 JSON）
 - `GET /`：展示页（静态页面）
 
-## 配置
+## 配置项
 
-### 环境变量
+- Cloudflare
+  - `IMAGE_URLS`：自定义图片 URL 列表，逗号分隔
+  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认不设置
+- Vercel
+  - `IMAGE_URLS`：自定义图片 URL 列表，逗号分隔
+  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认
+  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
+- GitHub Pages
+  - GitHub Pages 仅支持静态站点，不支持 `/api/*` 等函数接口。本项目在构建时会生成 `public/image-urls.json`，展示页会自动回退到静态模式随机图片。
+- EdgeOne Pages
+  - `IMAGE_URLS`：自定义图片 URL 列表，逗号分隔
+  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认不设置
 
-- `IMAGE_URLS`：图片 URL 列表（逗号分隔，可选）。配置后会覆盖默认图片列表，例如 `https://example.com/1.webp,https://example.com/2.webp` 或 `/images/1.webp,/images/2.webp`
-- `CORS_ALLOW_ORIGIN`：跨域来源（默认 `*`）
-
-### Cloudflare (Workers / Pages)
-
-部署到 Cloudflare 时：
-
-- 默认图片列表来自构建生成（`scripts/generate-image-urls.mjs` → `src/generated/imageUrls.ts`），不需要手动维护图片 URL
-- 如需使用外部图床/自定义来源，可选配置 `IMAGE_URLS` 来覆盖默认列表
-
-**Workers（部署）：**
-1. 可选：在 Cloudflare Dashboard → Workers → Settings → Environment Variables 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
-2. 部署：`npm run deploy:workers`
-
-**Pages（部署）：**
-1. 将仓库连接到 Cloudflare Pages 并设置构建：
-   - Build command：`npm run build`
-   - Output directory：`public`
-2. 可选：Cloudflare Dashboard → Pages → 你的项目 → Settings → Environment variables 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
-3. 或直接部署（需要已登录/绑定）：`npm run deploy:pages`
-
-### Vercel
-
-部署到 Vercel 时：
-
-- API 使用 Vercel Edge Function（`/api/random`），静态资源使用 `public/`
-- `/r`、`/health` 通过 `vercel.json` 重写到对应的 Edge Function
-- 可选：在 Vercel Project → Settings → Environment Variables 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
-
-**一键部署：**
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
-
-### GitHub Pages
-
-GitHub Pages 仅支持静态站点，不支持 `/api/*` 等函数接口。本项目在构建时会生成 `public/image-urls.json`，展示页会自动回退到静态模式随机图片。
-
-**部署：**
-1. 在 GitHub 仓库 Settings → Pages，将 Source 选择为 **GitHub Actions**
-2. 推送到 `master`/`main` 分支后，自动触发 `/.github/workflows/deploy-gh-pages.yml`
-3. 部署产物为 `public` 目录（包含 `index.html` 和 `images/*.webp`）
-
-### EdgeOne Pages
-
-部署到 EdgeOne Pages 时：
-
-- 静态输出目录使用 `public`（包含展示页 `index.html` 和 `images/*.webp`）
-- 默认图片列表同样来自构建生成（`scripts/generate-image-urls.mjs` → `src/generated/imageUrls.ts`）
-- 如需使用外部图床/自定义来源，可在项目环境变量中配置 `IMAGE_URLS` 覆盖默认列表
-
-**Pages（部署）：**
-1. 在 EdgeOne Pages 控制台创建项目并导入仓库
-2. 配置构建（项目设置 → 构建部署配置）：
-	- Root directory：`./`
-	- Build command：`npm run build`
-	- Output directory：`public`
-	- Node.js 版本：选择 `18` 或更高（本项目要求 Node >= 18）
-3. 可选：项目设置 → 环境变量 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
-
-> 说明：本仓库的 `functions/*` 目录为 Cloudflare Pages Functions 的结构；EdgeOne Pages 的函数能力（Pages Functions/Edge Functions）需要按其平台规范单独适配。
-
-### 阿里云 ESA
-
-因为 ESA 没有环境配置，会自动使用脚本收集 `public/images` 中的图片并生成默认列表。
+- AliYunESA：
+  - `IMAGE_URLS`：自定义图片 URL 列表，逗号分隔
+  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认不设置
 
 ## 本地开发
 
@@ -94,22 +45,9 @@ GitHub Pages 仅支持静态站点，不支持 `/api/*` 等函数接口。本项
 - ESA：`npm run esa:deploy`
 - EdgeOne Pages：在控制台导入仓库并按“EdgeOne Pages”小节配置构建/输出
 - Vercel：一键部署按钮或在 Vercel 控制台导入仓库
-- GitHub Actions：见 `/.github/workflows/deploy-workers.yml`
 - GitHub Pages：启用 Pages 并使用 `/.github/workflows/deploy-gh-pages.yml`
 
-### GitHub Actions
+## 许可证
 
-仓库内置 `/.github/workflows/deploy-workers.yml` 示例，用于自动部署到 Cloudflare Workers。
-使用前需要在 GitHub 仓库 Secrets 配置：
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-
-默认对 `master`/`main` 分支 push 触发，也可在 Actions 页面手动触发。若需要部署 Pages，可复制该 workflow 并将部署命令替换为 `npm run deploy:pages`。
-
-## 技术细节
-
-- 配置：[esa.jsonc](esa.jsonc) / [wrangler.toml](wrangler.toml)
-- 入口：`src/worker.ts`（Workers/ESA）/ `functions/*`（Pages）
-- 构建：`npm run build` → `dist/worker.js`
-- 静态：`./public/`（包含 `images/*.webp`）
+MIT License
+Power By LittleSheepQwQ
