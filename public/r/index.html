@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Image</title>
+    <style>
+      body {
+        font-family: "Georgia", "Times New Roman", serif;
+        margin: 0;
+        padding: 40px 24px;
+        background: #f3efe7;
+        color: #2e2a24;
+      }
+
+      .card {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 24px 28px;
+        border-radius: 16px;
+        background: #fffdf7;
+        box-shadow: 0 12px 28px rgba(46, 42, 36, 0.12);
+      }
+
+      h1 {
+        margin: 0 0 12px 0;
+        font-size: 1.6rem;
+        letter-spacing: 0.02em;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      code {
+        font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+        font-size: 0.9rem;
+        background: #efe7db;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Picking a random image...</h1>
+      <p id="msg">If this takes too long, the image list might be missing.</p>
+    </div>
+
+    <script>
+      const msg = document.getElementById("msg");
+
+      function getBasePath() {
+        const parts = location.pathname.split("/").filter(Boolean);
+        parts.pop();
+        if (parts.length === 0) return "/";
+        return `/${parts.join("/")}/`;
+      }
+
+      function resolvePath(pathname) {
+        if (!pathname) return pathname;
+        if (/^https?:\/\//i.test(pathname)) return pathname;
+        if (!pathname.startsWith("/")) return pathname;
+        const base = getBasePath();
+        return `${base}${pathname.slice(1)}`;
+      }
+
+      async function redirectRandom() {
+        try {
+          const res = await fetch(resolvePath("/image-urls.json"), {
+            cache: "no-store"
+          });
+          if (!res.ok) {
+            throw new Error("Failed to load image list");
+          }
+          const list = await res.json();
+          if (!Array.isArray(list) || list.length === 0) {
+            throw new Error("Image list is empty");
+          }
+          const index = Math.floor(Math.random() * list.length);
+          const picked = list[index];
+          const url = new URL(resolvePath(picked), location.origin);
+          url.searchParams.set("_", String(Date.now()));
+          location.replace(url.toString());
+        } catch (err) {
+          const message = err && err.message ? err.message : String(err);
+          msg.textContent = `Error: ${message}`;
+        }
+      }
+
+      redirectRandom();
+    </script>
+  </body>
+</html>
