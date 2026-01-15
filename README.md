@@ -48,6 +48,15 @@
 **一键部署：**
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
 
+### GitHub Pages
+
+GitHub Pages 仅支持静态站点，不支持 `/api/*` 等函数接口。本项目在构建时会生成 `public/image-urls.json`，展示页会自动回退到静态模式随机图片。
+
+**部署：**
+1. 在 GitHub 仓库 Settings → Pages，将 Source 选择为 **GitHub Actions**
+2. 推送到 `master`/`main` 分支后，自动触发 `/.github/workflows/deploy-gh-pages.yml`
+3. 部署产物为 `public` 目录（包含 `index.html` 和 `images/*.webp`）
+
 ### EdgeOne Pages
 
 部署到 EdgeOne Pages 时：
@@ -86,6 +95,7 @@
 - EdgeOne Pages：在控制台导入仓库并按“EdgeOne Pages”小节配置构建/输出
 - Vercel：一键部署按钮或在 Vercel 控制台导入仓库
 - GitHub Actions：见 `/.github/workflows/deploy-workers.yml`
+- GitHub Pages：启用 Pages 并使用 `/.github/workflows/deploy-gh-pages.yml`
 
 ### GitHub Actions
 

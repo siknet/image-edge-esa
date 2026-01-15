@@ -3,6 +3,7 @@ node_modules/
 
 # build outputs
 /dist/
+public/image-urls.json
 
 # local caches / tooling
 .wrangler/

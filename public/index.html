@@ -227,7 +227,7 @@
       <div class="card">
         <div class="row">
           <button id="btn">换一张</button>
-          <a href="/r" target="_blank" rel="noreferrer">打开图片链接</a>
+          <a id="openLink" href="/r" target="_blank" rel="noreferrer">打开图片链接</a>        
         </div>
 
         <div id="status" class="status">(加载中…)</div>
@@ -254,6 +254,82 @@
       const img = document.getElementById('img');
       const status = document.getElementById('status');
       const jsonEl = document.getElementById('json');
+      const link = document.getElementById('openLink');
+
+      let staticList = null;
+
+      function getBasePath() {
+        const path = location.pathname;
+        return path.endsWith('/') ? path : path.replace(/\/[^/]*$/, '/');
+      }
+
+      function resolveStaticPath(pathname) {
+        if (!pathname || !pathname.startsWith('/')) return pathname;
+        const base = getBasePath();
+        return `${base}${pathname.slice(1)}`;
+      }
+
+      async function loadStaticList() {
+        if (staticList) return staticList;
+        const res = await fetch(resolveStaticPath('/image-urls.json'), { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error('无法加载静态图片列表');
+        }
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('静态图片列表为空');
+        }
+        staticList = data;
+        return staticList;
+      }
+
+      async function loadFromApi() {
+        const res = await fetch('/api/random?json=1', {
+          headers: { accept: 'application/json' }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const msg = data && data.error ? data.error : '未知错误';
+          const err = new Error(msg);
+          err.data = data;
+          throw err;
+        }
+
+        // 使用 /api/random 的图片模式，并用 id 固定本次结果
+        const bust = Date.now();
+        const url = new URL('/api/random', location.origin);
+        url.searchParams.set('id', String(data.id ?? data.index + 1));
+        url.searchParams.set('_', String(bust));
+
+        return {
+          imgUrl: url.toString(),
+          linkUrl: url.toString(),
+          label: `已加载：第 ${data.index + 1} / ${data.total} 张`,
+          payload: data
+        };
+      }
+
+      async function loadFromStatic() {
+        const list = await loadStaticList();
+        const index = Math.floor(Math.random() * list.length);
+        const picked = list[index];
+        const bust = Date.now();
+        const url = new URL(resolveStaticPath(picked), location.origin);
+        url.searchParams.set('_', String(bust));
+
+        return {
+          imgUrl: url.toString(),
+          linkUrl: url.toString(),
+          label: `已加载：第 ${index + 1} / ${list.length} 张（静态）`,
+          payload: {
+            url: picked,
+            id: String(index + 1),
+            index,
+            total: list.length,
+            source: 'static'
+          }
+        };
+      }
 
       async function load() {
         status.textContent = '加载中…';
@@ -261,30 +337,37 @@
         jsonEl.textContent = '(loading...)';
 
         try {
-          const res = await fetch('/api/random?json=1', { headers: { 'accept': 'application/json' } });
-          const data = await res.json();
-
-          if (!res.ok) {
-            status.textContent = `请求失败: ${data.error || '未知错误'}`;
-            status.className = 'status error';
-            jsonEl.textContent = JSON.stringify(data, null, 2);
-            img.removeAttribute('src');
-            return;
-          }
-
-          // 使用 /api/random 的图片模式，并用 id 固定本次结果
-          const bust = Date.now();
-          const url = new URL('/api/random', location.origin);
-          url.searchParams.set('id', String(data.id ?? data.index + 1));
-          url.searchParams.set('_', String(bust));
-
-          img.src = url.toString();
-          status.textContent = `已加载：第 ${data.index + 1} / ${data.total} 张`;
+          const result = await loadFromApi();
+          img.src = result.imgUrl;
+          link.href = result.linkUrl;
+          status.textContent = result.label;
           status.className = 'status';
-          jsonEl.textContent = JSON.stringify(data, null, 2);
+          jsonEl.textContent = JSON.stringify(result.payload, null, 2);
         } catch (e) {
-          status.textContent = `出错：${e?.message || String(e)}`;
-          status.className = 'status error';
+          try {
+            const result = await loadFromStatic();
+            img.src = result.imgUrl;
+            link.href = result.linkUrl;
+            status.textContent = result.label;
+            status.className = 'status';
+            jsonEl.textContent = JSON.stringify(result.payload, null, 2);
+          } catch (fallbackErr) {
+            const message = e?.message || fallbackErr?.message || String(e);
+            status.textContent = `出错：${message}`;
+            status.className = 'status error';
+            const errorPayload = e?.data
+              ? { ...e.data }
+              : {
+                  apiError: {
+                    message: e?.message || String(e)
+                  }
+                };
+            errorPayload.fallbackError = {
+              message: fallbackErr?.message || String(fallbackErr)
+            };
+            jsonEl.textContent = JSON.stringify(errorPayload, null, 2);
+            img.removeAttribute('src');
+          }
         }
       }
 

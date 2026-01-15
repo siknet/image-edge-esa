@@ -4,6 +4,7 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const imagesDir = path.join(repoRoot, 'public', 'images');
 const outFile = path.join(repoRoot, 'src', 'generated', 'imageUrls.ts');
+const outJsonFile = path.join(repoRoot, 'public', 'image-urls.json');
 
 function isWebp(filename) {
   return filename.toLowerCase().endsWith('.webp');
@@ -36,7 +37,9 @@ export const DEFAULT_IMAGE_URLS: string[] = ${JSON.stringify(files, null, 2)};
 `;
 
   await writeFile(outFile, content, 'utf8');
+  await writeFile(outJsonFile, `${JSON.stringify(files, null, 2)}\n`, 'utf8');
   console.log(`Generated ${files.length} image URL(s) -> ${path.relative(repoRoot, outFile)}`);
+  console.log(`Generated ${files.length} image URL(s) -> ${path.relative(repoRoot, outJsonFile)}`);
 }
 
 await main();
