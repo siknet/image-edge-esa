@@ -256,7 +256,15 @@
       const jsonEl = document.getElementById('json');
       const link = document.getElementById('openLink');
       const urlParams = new URLSearchParams(location.search);
-      const apiEnabled = urlParams.get('api') === '1';
+      const apiOverride = urlParams.get('api');
+      const staticOnly = document.documentElement.dataset.staticOnly === '1';
+      const isGitHubPagesHost = location.hostname.endsWith('.github.io');
+      const apiEnabled =
+        apiOverride === '1'
+          ? true
+          : apiOverride === '0'
+            ? false
+            : !(staticOnly || isGitHubPagesHost);
 
       let staticList = null;
 
