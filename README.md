@@ -1,6 +1,6 @@
 <h1 align="center">Image Api for Pages</h1>
 
-一个可以部署到函数或者Page的随机图床 API。支持多种部署环境
+<h3 align="center">一个可以部署到函数或者Page的随机图床 API。支持多种部署环境</h3>
 
 ## 功能
 
@@ -19,8 +19,7 @@
   - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认不设置
 - Vercel
   - `IMAGE_URLS`：自定义图片 URL 列表，逗号分隔
-  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，默认
-  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
+  - `CORS_ALLOW_ORIGIN`：设置 CORS 允许的来源，部署按钮：[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
 - GitHub Pages
   - GitHub Pages 仅支持静态站点，不支持 `/api/*` 等函数接口。本项目在构建时会生成 `public/image-urls.json`，展示页会自动回退到静态模式随机图片。
 - EdgeOne Pages
@@ -36,7 +35,7 @@
 1. `npm i` — 安装依赖
 2. `npm run dev:workers` — Workers 模式
 3. `npm run dev:pages` — Pages Functions 模式
-4. `npm run esa:dev` — ESA 模式 [需要安装 ESA CLI]
+4. `npm run esa:dev` — ESA 模式
 
 ## 部署
 
@@ -49,5 +48,4 @@
 
 ## 许可证
 
-MIT License
-Power By LittleSheepQwQ
+MIT License | Power By LittleSheepQwQ
