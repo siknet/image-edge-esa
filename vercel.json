@@ -1,5 +1,4 @@
 {
-  // Note: Vercel automatically maps "/api/r" to "api/r.ts" and "/api/health" to "api/health.ts".
   "rewrites": [
     { "source": "/r", "destination": "/api/r" },
     { "source": "/health", "destination": "/api/health" }
