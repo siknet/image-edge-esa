@@ -37,6 +37,17 @@
 2. 可选：Cloudflare Dashboard → Pages → 你的项目 → Settings → Environment variables 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
 3. 或直接部署（需要已登录/绑定）：`npm run deploy:pages`
 
+### Vercel
+
+部署到 Vercel 时：
+
+- API 使用 Vercel Edge Function（`/api/random`），静态资源使用 `public/`
+- `/r`、`/health` 通过 `vercel.json` 重写到对应的 Edge Function
+- 可选：在 Vercel Project → Settings → Environment Variables 配置 `IMAGE_URLS`、`CORS_ALLOW_ORIGIN`
+
+**一键部署：**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/znc15/image-edge-esa&project-name=image-edge-esa&repository-name=image-edge-esa&env=IMAGE_URLS,CORS_ALLOW_ORIGIN)
+
 ### EdgeOne Pages
 
 部署到 EdgeOne Pages 时：
@@ -73,6 +84,18 @@
 - Pages：`npm run deploy:pages`
 - ESA：`npm run esa:deploy`
 - EdgeOne Pages：在控制台导入仓库并按“EdgeOne Pages”小节配置构建/输出
+- Vercel：一键部署按钮或在 Vercel 控制台导入仓库
+- GitHub Actions：见 `/.github/workflows/deploy-workers.yml`
+
+### GitHub Actions
+
+仓库内置 `/.github/workflows/deploy-workers.yml` 示例，用于自动部署到 Cloudflare Workers。
+使用前需要在 GitHub 仓库 Secrets 配置：
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+默认对 `master`/`main` 分支 push 触发，也可在 Actions 页面手动触发。若需要部署 Pages，可复制该 workflow 并将部署命令替换为 `npm run deploy:pages`。
 
 ## 技术细节
 
